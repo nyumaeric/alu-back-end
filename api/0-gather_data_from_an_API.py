@@ -1,27 +1,40 @@
-!/usr/bin/python3
-""" Library to gather data from an API """
+#!/usr/bin/python3
+"""
+getting data from the api
+"""
 
 import requests
 import sys
 
 if __name__ == "__main__":
-    employee_id = sys.argv[1]
-    url = "https://jsonplaceholder.typicode.com/users/{}".format(employee_id)
-    todo = "https://jsonplaceholder.typicode.com/todos?userId={}"
-    todo = todo.format(employee_id)
+    employee_Id = int(sys.argv[1])
 
-    user_info = requests.request("GET", url).json()
-    todo_info = requests.request("GET", todo).json()
+    todo_url = "https://jsonplaceholder.typicode.com/todos"
+    user_data_url = "https://jsonplaceholder.typicode.com/users"
 
-    employee_name = user_info.get("name")
-    employee_username = user_info.get("username")
-    total_tasks = list(filter(lambda x: (x["completed"] is True), todo_info))
-    task_com = len(total_tasks)
-    total_task_done = len(todo_info)
+    user_response = requests.get(user_data_url)
+    todo_response = requests.get(todo_url)
 
-    with open(str(employee_id) + '.csv', "w") as f:
-        [f.write('"' + str(employee_id) + '",' +
-                 '"' + employee_username + '",' +
-                 '"' + str(task["completed"]) + '",' +
-                 '"' + task["title"] + '",' + "\n")
-         for task in todo_info]
+    # if todo_response.status_code & user_response.status_code == 200:
+    todos = todo_response.json()
+    users = user_response.json()
+
+    for user in users:
+        if user.get("id") == employee_Id:
+            employee_name = user.get("name")
+
+    # filter completed tasks
+    done = []
+    total = 0
+    completed = 0
+    for todo in todos:
+        if todo.get("userId") == employee_Id:
+            total += 1
+            if todo.get("completed"):
+                completed += 1
+                done.append(todo.get("title"))
+
+    # Display the progress information
+    print(f"Employee {employee_name} is done with tasks({completed}/{total}):")
+    for _ in done:
+        print(f"\t {_}")
